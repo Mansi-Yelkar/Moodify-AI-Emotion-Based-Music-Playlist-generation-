@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="playlist-header">
+    <h2>Your <span class="highlight">{{ emotion }}</span> Playlist</h2>
+    <p>Curated using Hierarchical Clustering</p>
+</div>
+
+<div class="songs-grid">
+    {% for song in songs %}
+    <div class="song-card glass-panel">
+        <div class="song-info">
+            <h4>{{ song.track_name }}</h4>
+            <p>{{ song.artist_name }}</p>
+            <small>Cluster {{ song.cluster }}</small>
+        </div>
+        <div class="song-actions">
+            <a href="https://www.youtube.com/results?search_query={{ song.youtube_query|urlencode }}" target="_blank" class="btn-play">▶ Play</a>
+            {% if session.get('user_id') %}
+            <button class="btn-like" onclick="likeSong('{{ song.track_name|escape }}', '{{ song.artist_name|escape }}', '{{ song.youtube_query|escape }}')">❤️</button>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not session.get('user_id') %}
+<div class="guest-warning glass-panel mt-4">
+    <p>Register an account to save these songs to your library!</p>
+    <a href="{{ url_for('auth') }}" class="btn-secondary">Sign Up</a>
+</div>
+{% endif %}
+
+<script>
+function likeSong(track, artist, query) {
+    fetch('/api/like_song', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({track_name: track, artist_name: artist, youtube_query: query})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) alert("Song saved to your library!");
+        else alert("Failed to save song.");
+    });
+}
+</script>
+{% endblock %}

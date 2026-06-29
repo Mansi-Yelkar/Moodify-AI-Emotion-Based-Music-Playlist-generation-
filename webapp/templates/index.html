@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-header">
+    <h1>Feel the Beat: Scan Your Mood</h1>
+    <p>Moodify uses AI to analyze your emotion and curates the perfect playlist using hierarchical clustering.</p>
+</div>
+
+{% if session.get('user_id') %}
+<div class="dashboard-tabs">
+    <a href="{{ url_for('index') }}" class="tab-btn active" id="btn-mood-tab">🔍 Scan Mood</a>
+    <a href="{{ url_for('dashboard') }}" class="tab-btn" id="btn-library-tab">🎵 My Music Library</a>
+</div>
+{% else %}
+<div class="guest-welcome-actions mb-4 text-center">
+    <p class="subtitle">Log in to save recommended tracks to your personal library.</p>
+    <div class="hero-actions">
+        <a href="{{ url_for('auth') }}" class="btn-primary">Login / Sign Up</a>
+    </div>
+</div>
+{% endif %}
+
+<div class="dashboard glass-panel">
+    <h3>How are you feeling today?</h3>
+    <p class="subtitle">Select an input method for emotion detection</p>
+    
+    <div class="input-methods">
+        <div class="method-card" id="cam-method">
+            <h3>📷 Webcam</h3>
+            <p>Let us see your face</p>
+            <button class="btn-primary" onclick="startWebcam()">Start</button>
+        </div>
+        
+        <div class="method-card" id="mic-method">
+            <h3>🎤 Microphone</h3>
+            <p>Tell us about your day</p>
+            <button class="btn-primary" id="btn-record" onclick="toggleRecording()">Record</button>
+        </div>
+        
+        <div class="method-card" id="text-method">
+            <h3>✍️ Text</h3>
+            <p>Write it down</p>
+            <button class="btn-primary" onclick="showTextInput()">Type</button>
+        </div>
+    </div>
+    
+    <div id="webcam-container" class="hidden action-container">
+        <video id="video-preview" autoplay playsinline></video>
+        <button class="btn-secondary" onclick="captureImage()">Capture & Analyze</button>
+    </div>
+
+    <div id="text-container" class="hidden action-container">
+        <textarea id="emotion-text" rows="4" placeholder="I feel really excited about..."></textarea>
+        <button class="btn-secondary" onclick="submitText()">Analyze Text</button>
+    </div>
+
+    <div id="loading" class="hidden action-container">
+        <div class="spinner"></div>
+        <p>Analyzing emotion...</p>
+    </div>
+    
+    <div id="result-container" class="hidden result-glass">
+        <h3>We detected: <span id="detected-emotion" class="highlight"></span></h3>
+        <button class="btn-primary large mt-4" onclick="generatePlaylist()">Generate Playlist</button>
+    </div>
+</div>
+{% endblock %}

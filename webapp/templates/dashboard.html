@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-header">
+    <h2>Welcome to Your Dashboard, <span class="highlight">{{ session.username }}</span></h2>
+    <p>Manage your saved recommendations and custom songs.</p>
+</div>
+
+<div class="dashboard-tabs">
+    <a href="{{ url_for('index') }}" class="tab-btn" id="btn-mood-tab">🔍 Scan Mood</a>
+    <a href="{{ url_for('dashboard') }}" class="tab-btn active" id="btn-library-tab">🎵 My Music Library</a>
+</div>
+
+<div class="dashboard-container">
+    <div class="library-wrapper">
+        <!-- Add Custom Song Inline Form -->
+        <div class="add-song-card glass-panel mb-4">
+            <h3>➕ Add Custom Song</h3>
+            <p class="subtitle">Manually add any song you like to your custom library list</p>
+            <form id="add-song-form" class="inline-form" onsubmit="addCustomSong(event)">
+                <div class="form-row">
+                    <div class="input-group">
+                        <input type="text" id="add-track-name" placeholder="Track Name" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="add-artist-name" placeholder="Artist Name" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="add-youtube-query" placeholder="YouTube Query (Optional)">
+                    </div>
+                    <button type="submit" class="btn-primary">Add Song</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="library-grids">
+            <!-- Liked Recommendation Songs -->
+            <div class="library-section glass-panel">
+                <h3>❤️ Liked Songs</h3>
+                <p class="subtitle">Songs you liked from AI playlist recommendations</p>
+                <div class="library-list" id="liked-songs-list">
+                    {% if liked_songs %}
+                        {% for song in liked_songs %}
+                        <div class="library-item-card" id="liked-song-{{ song.id }}">
+                            <div class="song-meta">
+                                <span class="song-title">{{ song.track_name }}</span>
+                                <span class="song-artist">{{ song.artist_name }}</span>
+                            </div>
+                            <div class="item-actions">
+                                <a href="https://www.youtube.com/results?search_query={{ song.youtube_query|urlencode }}" target="_blank" class="btn-play-mini">▶ Play</a>
+                                <button class="btn-remove" onclick="removeLikedSong({{ song.id }})" title="Remove from Likes">🗑️</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-songs">No liked songs yet. Try scanning your mood!</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Custom User Added Songs -->
+            <div class="library-section glass-panel">
+                <h3>🎵 Custom Songs</h3>
+                <p class="subtitle">Songs you manually added yourself</p>
+                <div class="library-list" id="added-songs-list">
+                    {% if added_songs %}
+                        {% for song in added_songs %}
+                        <div class="library-item-card" id="added-song-{{ song.id }}">
+                            <div class="song-meta">
+                                <span class="song-title">{{ song.track_name }}</span>
+                                <span class="song-artist">{{ song.artist_name }}</span>
+                            </div>
+                            <div class="item-actions">
+                                <a href="https://www.youtube.com/results?search_query={{ song.youtube_query|urlencode }}" target="_blank" class="btn-play-mini">▶ Play</a>
+                                <button class="btn-remove" onclick="removeAddedSong({{ song.id }})" title="Remove song">🗑️</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-songs" id="no-added-songs-msg">No custom songs added yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addCustomSong(event) {
+    event.preventDefault();
+    const track = document.getElementById('add-track-name').value;
+    const artist = document.getElementById('add-artist-name').value;
+    const query = document.getElementById('add-youtube-query').value;
+    
+    fetch('/api/add_song', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({track_name: track, artist_name: artist, youtube_query: query})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("Custom song added to your library!");
+            // Reload page to reflect updated DB state
+            window.location.reload();
+        } else {
+            alert("Error adding song: " + (data.error || "Unknown error"));
+        }
+    })
+    .catch(err => {
+        alert("Failed to connect to server.");
+    });
+}
+
+function removeLikedSong(songId) {
+    if(!confirm("Are you sure you want to remove this song from your liked list?")) return;
+    
+    fetch('/api/remove_liked_song', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({song_id: songId})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const el = document.getElementById('liked-song-' + songId);
+            if (el) {
+                el.style.opacity = 0;
+                setTimeout(() => el.remove(), 300);
+            }
+        } else {
+            alert("Failed to remove song: " + (data.error || "Unknown error"));
+        }
+    });
+}
+
+function removeAddedSong(songId) {
+    if(!confirm("Are you sure you want to delete this custom song?")) return;
+    
+    fetch('/api/remove_added_song', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({song_id: songId})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const el = document.getElementById('added-song-' + songId);
+            if (el) {
+                el.style.opacity = 0;
+                setTimeout(() => el.remove(), 300);
+            }
+        } else {
+            alert("Failed to remove song: " + (data.error || "Unknown error"));
+        }
+    });
+}
+</script>
+{% endblock %}

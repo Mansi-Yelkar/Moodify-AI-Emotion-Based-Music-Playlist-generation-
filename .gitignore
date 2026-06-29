@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Logs and database
+*.log
+*.sqlite3
+
+# VS Code
+.vscode/
+
+# Temporary files
+*.tmp
+*.swp
+*.swo

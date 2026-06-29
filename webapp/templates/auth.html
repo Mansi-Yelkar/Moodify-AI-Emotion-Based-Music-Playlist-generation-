@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-container glass-panel">
+    <h2>Welcome to Moodify</h2>
+    <form method="POST" action="{{ url_for('auth') }}" class="auth-form">
+        <div class="input-group">
+            <label>Username</label>
+            <input type="text" name="username" required>
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" name="password" required>
+        </div>
+        <div class="auth-buttons">
+            <button type="submit" name="action" value="login" class="btn-primary">Login</button>
+            <button type="submit" name="action" value="register" class="btn-secondary">Sign Up</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
